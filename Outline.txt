@@ -1,0 +1,28 @@
+Idea:
+- PCA vs AE for dimensionality reduction
+
+Framework:
+- Same dataset
+- Same metrics
+
+Analysis:
+- base comparison on metrics
+- extended comparison:
+    - how much better
+    - when does one take over/win over the other
+    - practicality (time taken, data required, computational power required)
+
+Mathematical analysis for why [winner] is better for the given task.
+
+##Pipeline:
+- Data cleaning
+- PCA: 
+    - In R, potentially, but I want to write the code from scratch instead of using inbuilt libraries
+    - Full analysis in R 
+    - Export results as csv/table
+- AE: 
+    - In Python, full from scratch
+    - Export results including practicality aspect (time taken, etc)
+- Comparison:
+    - plots
+    - in R cause plotting is easier
