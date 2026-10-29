@@ -1,9 +1,13 @@
 Idea:
 - PCA vs AE for dimensionality reduction
+- Dataset: Fashion MNIST
+
 
 Framework:
-- Same dataset
-- Same metrics
+- Same dataset (Fashion MNIST)
+- Same metrics:
+    - MSE 
+    - etc
 
 Analysis:
 - base comparison on metrics
