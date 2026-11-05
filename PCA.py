@@ -1,3 +1,11 @@
+'''
+Author: Aalam Sultanji
+Date: 5/11/26
+
+This code is a simple implementation of PCA using first principles.
+
+'''
+
 import numpy as np
 
 class PCA:
@@ -7,10 +15,11 @@ class PCA:
     def fit(self, X):
         #mean standardising: 
         self.mean = np.mean(X, axis = 0)
-        X_centered = X- self.mean
+        self.std = np.std(X, axis = 0)
+        X_centered = (X - self.mean)
 
         #covariance matrix calculation:
-        cov_matrix = np.cov(X_centered, rowvar = False)
+        cov_matrix = np.cov(X_centered.T)
 
         #eigen decomposition:
         eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
@@ -19,7 +28,16 @@ class PCA:
         self.eigenvalues = eigenvalues[sorted_indices]
         self.eigenvectors = eigenvectors[:, sorted_indices]
         self.principal_components = self.eigenvectors[:, :self.n_components]
+        self.ratio = np.sum(self.eigenvalues[:self.n_components]) / np.sum(self.eigenvalues)
+        return self
 
+
+    def transform(self, X):
+        self.transform = np.dot((X - self.mean), self.principal_components)
+        self.inverse_transform = np.dot(self.transform, self.principal_components.T) + self.mean
 
     def fit_transform(self, X):
         self.fit(X)
+        return self.transform(X)
+        
+
