@@ -15,7 +15,7 @@ class PCA:
     def fit(self, X):
         #mean standardising: 
         self.mean = np.mean(X, axis = 0)
-        self.std = np.std(X, axis = 0)
+        #self.std = np.std(X, axis = 0)
         X_centered = (X - self.mean)
 
         #covariance matrix calculation:
@@ -33,8 +33,11 @@ class PCA:
 
 
     def transform(self, X):
-        self.transform = np.dot((X - self.mean), self.principal_components)
-        self.inverse_transform = np.dot(self.transform, self.principal_components.T) + self.mean
+        transform = np.dot((X - self.mean), self.principal_components)
+        return transform
+    def inverse_transform(self, transform):
+        inverse_transform = np.dot(transform, self.principal_components.T) + self.mean
+        return inverse_transform
 
     def fit_transform(self, X):
         self.fit(X)
