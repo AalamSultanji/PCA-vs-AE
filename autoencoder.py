@@ -5,30 +5,37 @@ import torch
 import torch.nn as nn
 
 class Autoencoder(nn.Module):
-    def __init__(self, input_dim, latent_dim, activation = True):
+    def __init__(self, input_dim, latent_dim,  h1, h2, activation = False,):
         super(Autoencoder, self).__init__()
-        self.linear1 = nn.Linear(input_dim, 128)
-        self.linear2 = nn.Linear(128, 64)
-        self.linear3 = nn.Linear(64, latent_dim)
-        self.delinear1 = nn.Linear(latent_dim, 64)
-        self.delinear2 = nn.Linear(64, 128)
-        self.delinear3 = nn.Linear(128, input_dim)
-        self.activation = activation
+        act = nn.ReLU() if activation else nn.Identity() #to account for nonlinearity 
+        h1 = max(h1, latent_dim) #to ensure that the bottleneck does not happen before the latent dimension, else curves flatten
+        h2 = max(h2, latent_dim)
+        #encoder block
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, h1),
+            act,
+            nn.Linear(h1, h2),
+            act,
+            nn.Linear(h2, latent_dim)
+        )
+        #decoder block
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, h2),
+            act,
+            nn.Linear(h2, h1),
+            act,
+            nn.Linear(h1, input_dim)
+        )
+    
 
+    def encode(self, x):
+        x = self.encoder(x)
+        return x
+    def decode(self, x):
+        x = self.decoder(x)
+        return x
     def forward(self, x):
-        if self.activation:
-            x = torch.relu(self.linear1(x))
-            x = torch.relu(self.linear2(x))
-            x = self.linear3(x)
-            decoded = torch.relu(self.delinear1(x))
-            decoded = torch.relu(self.delinear2(decoded))
-            decoded = self.delinear3(decoded)
-        else:
-            x = self.linear1(x)
-            x = self.linear2(x)
-            x = self.linear3(x)
-            decoded = self.delinear1(x)
-            decoded = self.delinear2(decoded)
-            decoded = self.delinear3(decoded)
+        decoded = self.decode(self.encode(x))
         return decoded
+
 
