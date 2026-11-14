@@ -13,6 +13,6 @@ def r2(xi, xhat):
 def downstream_acc(z_train, y_train, z_test, y_test):
     scaler = StandardScaler()
     logmod = LogisticRegression()
-    logmod.fit(scaler.fit_transform(z_train), scaler.fit_transform(y_train))
-    acc = logmod.score(z_test, y_test)
+    logmod.fit(scaler.fit_transform(z_train), y_train)
+    acc = logmod.score(scaler.transform(z_test), y_test)
     return acc
