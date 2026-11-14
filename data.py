@@ -1,10 +1,5 @@
 import numpy as np
-import torch
 from torchvision import datasets, transforms
-from torch.utils.data import Subset
-from sklearn.model_selection import train_test_split
-
-
 
 SPLIT_SEED = 42
 def load_dataset(train_size=0.9, val_size=0.1, split_seed=SPLIT_SEED):
@@ -12,8 +7,8 @@ def load_dataset(train_size=0.9, val_size=0.1, split_seed=SPLIT_SEED):
     train_set = datasets.FashionMNIST(root='data', train=True, download=True, transform=None)
     test_set = datasets.FashionMNIST(root='data', train=False, download=True, transform=None)
 
-    train_set.data = (train_set.data)/255.0.float().reshape(-1, 28*28)
-    test_set.data = (test_set.data)/255.0.float().reshape(-1, 28*28)
+    train_set.data = (train_set.data.float() / 255.0).reshape(-1, 28 * 28)
+    test_set.data = (test_set.data.float() / 255.0).reshape(-1, 28 * 28)
 
     #splitting the sets
     total = len(train_set)
@@ -34,4 +29,4 @@ def load_dataset(train_size=0.9, val_size=0.1, split_seed=SPLIT_SEED):
     Y_val = train_set.targets[val_index]
     Y_test = test_set.targets
 
-    return X_train, X_val, X_test, Y_train, Y_val, Y_test
+    return X_train.numpy(), X_val.numpy(), X_test.numpy(), Y_train.numpy(), Y_val.numpy(), Y_test.numpy()
