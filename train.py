@@ -4,7 +4,7 @@ import os
 from metrics import mse, downstream_acc, r2
 import copy
 
-def train_ae(model, train_set, val_split, criterion, optimizer, device, epochs = 50):
+def train_ae(model, train_loader, val_loader, criterion, optimizer, device, epochs = 50):
     '''
     Training function for the model.
     Arguments: 
@@ -22,13 +22,14 @@ def train_ae(model, train_set, val_split, criterion, optimizer, device, epochs =
     #add flattening
     train_losses = []
     val_losses = []
+    best_val = float('inf')
     os.makedirs('state', exist_ok=True)
-    early_stopper = EarlyStopping(patience = 3, min_delta = 0.001)
+    early_stopper = EarlyStopping(patience = 3)
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
         total = 0
-        for inputs, _ in train_set:
+        for inputs, _ in train_loader:
             inputs = inputs.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -36,11 +37,12 @@ def train_ae(model, train_set, val_split, criterion, optimizer, device, epochs =
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-        avg_train_loss = running_loss / len(train_set)
+        avg_train_loss = running_loss / len(train_loader)
         train_losses.append(avg_train_loss)
         #validation part
-        val_loss = evaluate(model, val_split, criterion, device)
-        if val_loss < min(val_losses):
+        val_loss = evaluate(model, val_loader, criterion, device)
+        if val_loss < best_val:
+            best_val = val_loss
             best_model = copy.deepcopy(model.state_dict())
         val_losses.append(val_loss)
         print(f'Epoch {epoch+1}/{epochs} || Train Loss: {avg_train_loss:.4f} || Val Loss: {val_loss:.4f}')
@@ -51,11 +53,8 @@ def train_ae(model, train_set, val_split, criterion, optimizer, device, epochs =
             break
     model.load_state_dict(best_model)   
 
-    history = {
-        'train_loss': train_losses,
-        'val_loss': val_losses
-    }
-    return model, history
+    best_val_loss = min(val_losses)
+    return model, best_val_loss, len(val_losses)
 
 def evaluate(model, split, criterion, device):
     '''
@@ -79,10 +78,10 @@ class EarlyStopping:
         self.min_val_loss = float('inf')
         self.counter = 0
     def early_stop(self, val_loss):
-        if val_loss < self.min_val_loss:
+        if val_loss < self.min_val_loss - self.min_delta:
             self.min_val_loss = val_loss
             self.counter = 0
-        elif val_loss > (self.min_val_loss + self.min_delta):
+        else :
             self.counter += 1
             if self.counter >= self.patience:
                 return True
