@@ -24,7 +24,8 @@ def train_ae(model, train_loader, val_loader, criterion, optimizer, device, epoc
     val_losses = []
     best_val = float('inf')
     os.makedirs('state', exist_ok=True)
-    early_stopper = EarlyStopping(patience = 3)
+    early_stopper = EarlyStopping(patience = 20)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
@@ -41,11 +42,12 @@ def train_ae(model, train_loader, val_loader, criterion, optimizer, device, epoc
         train_losses.append(avg_train_loss)
         #validation part
         val_loss = evaluate(model, val_loader, criterion, device)
+        scheduler.step()
         if val_loss < best_val:
             best_val = val_loss
             best_model = copy.deepcopy(model.state_dict())
         val_losses.append(val_loss)
-        print(f'Epoch {epoch+1}/{epochs} || Train Loss: {avg_train_loss:.4f} || Val Loss: {val_loss:.4f}')
+        print(f'Epoch {epoch+1}/{epochs} || Train Loss: {avg_train_loss:.4f} || Val Loss: {val_loss:.4f} || LR: {optimizer.param_groups[0]["lr"]:.1e}')
 
         #patience based early stopping
         if early_stopper.early_stop(val_loss):

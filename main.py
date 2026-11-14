@@ -24,13 +24,13 @@ CONFIG = {
     'h2': 64,
     'lr': 0.001,
     'batch_size': 256,
-    'epochs': 50,
+    'epochs': 100,
     'train_size': 0.9,
     'val_size': 0.1,
     'SPLIT_SEED': 42
 }
 
-SMOKE = True   # flip to False for the real run
+SMOKE = False   # flip to False for the real run
 
 SMOKE_TEST = {
     'latent_dims': [4],
@@ -77,9 +77,10 @@ def run_ae(input_dims, hidden_dims, seed, activation, loaders, data):
     elapsed = time.perf_counter()-start
     model.eval()
     with torch.no_grad():
-        Z_train = trained_model.encode(torch.from_numpy(data['X_train'])).cpu().numpy()
-        Z_test = trained_model.encode(torch.from_numpy(data['X_test']))
+        Z_train = trained_model.encode(torch.from_numpy(data['X_train']).to(device)).cpu().numpy()
+        Z_test = trained_model.encode(torch.from_numpy(data['X_test']).to(device))
         X_hat = trained_model.decode(Z_test).cpu().numpy()
+        Z_test = Z_test.cpu().numpy()
         metrics = {
         'mse': mse(data['X_test'], X_hat),
         'r2': r2(data['X_test'], X_hat),
@@ -120,6 +121,12 @@ def main(CONFIG):
     }
     
     rows = []
+    if device.type == 'cuda':
+        warm = Autoencoder(CONFIG['input_dims'], 2, CONFIG['h1'], CONFIG['h2'], activation=True).to(device)
+        xb = torch.from_numpy(X_train[:CONFIG['batch_size']]).to(device)
+        nn.MSELoss()(warm(xb), xb).backward()
+        torch.cuda.synchronize()
+        del warm
     for d in CONFIG['latent_dims']:
         rows.append(run_pca(d, data))
         df = pd.DataFrame(rows)
