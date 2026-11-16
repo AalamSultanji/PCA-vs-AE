@@ -9,6 +9,7 @@ __pycache__/
 data
 
 sanity.py
+sanity.csv
 
 # Distribution / packaging
 .Python
